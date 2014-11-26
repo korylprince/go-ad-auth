@@ -5,6 +5,8 @@ Simple Active Directory Authentication for Go.
 
 The API is not set in stone, and will probably change in the future. This is more of a proof of concept.
 
+[![GoDoc](https://godoc.org/github.com/korylprince/go-ad-auth?status.svg)](https://godoc.org/github.com/korylprince/go-ad-auth)
+
 #Installing#
 
 `go get github.com/korylprince/go-ad-auth`
