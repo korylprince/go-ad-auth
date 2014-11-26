@@ -95,13 +95,21 @@ func getDN(cn string, config *Config, conn *ldap.Conn) (string, error) {
 	return "", fmt.Errorf("No DN found for: %s", cn)
 }
 
-func inGroup(username, group string, config *Config, conn *ldap.Conn) (bool, error) {
+func attrsToMap(entry *ldap.Entry) map[string][]string {
+	m := make(map[string][]string)
+	for _, attr := range entry.Attributes {
+		m[attr.Name] = attr.Values
+	}
+	return m
+}
+
+func inGroup(username, group string, config *Config, conn *ldap.Conn, attrs []string) (bool, map[string][]string, error) {
 	groupDN, err := getDN(group, config, conn)
 	if err != nil {
 		if config.Debug {
 			fmt.Printf("DEBUG: Error: %s", err)
 		}
-		return false, err
+		return false, nil, err
 	}
 	search := ldap.NewSearchRequest(
 		config.BaseDN,
@@ -110,7 +118,7 @@ func inGroup(username, group string, config *Config, conn *ldap.Conn) (bool, err
 		1, 0,
 		false,
 		fmt.Sprintf("(sAMAccountName=%s)", username),
-		[]string{"memberOf"},
+		append(attrs, "memberOf"),
 		nil,
 	)
 	result, lErr := conn.Search(search)
@@ -118,20 +126,50 @@ func inGroup(username, group string, config *Config, conn *ldap.Conn) (bool, err
 		if config.Debug {
 			fmt.Printf("DEBUG: LDAP Error %d: %s", lErr.ResultCode, lErr.Err.Error())
 		}
-		return false, lErr.Err
+		return false, nil, lErr.Err
 	}
-	if len(result.Entries) > 0 {
-		if attrs := result.Entries[0].Attributes; len(attrs) > 0 {
-			if attrs[0].Name == "memberOf" {
-				for _, v := range attrs[0].Values {
-					if groupDN == v {
-						return true, nil
+	if len(result.Entries) == 1 {
+		entry_attrs := attrsToMap(result.Entries[0])
+		if groups, ok := entry_attrs["memberOf"]; ok {
+			for _, group := range groups {
+				if groupDN == group {
+					for _, key := range attrs {
+						if key == "memberOf" {
+							return true, entry_attrs, nil
+						}
 					}
+					delete(entry_attrs, "memberOf")
+					return true, entry_attrs, nil
 				}
 			}
 		}
+
 	}
-	return false, nil
+	return false, nil, fmt.Errorf("Amount of Entries returned was not one")
+}
+
+func getAttrs(username string, config *Config, conn *ldap.Conn, attrs []string) (map[string][]string, error) {
+	search := ldap.NewSearchRequest(
+		config.BaseDN,
+		ldap.ScopeWholeSubtree,
+		ldap.DerefAlways,
+		1, 0,
+		false,
+		fmt.Sprintf("(sAMAccountName=%s)", username),
+		attrs,
+		nil,
+	)
+	result, lErr := conn.Search(search)
+	if lErr != nil {
+		if config.Debug {
+			fmt.Printf("DEBUG: LDAP Error %d: %s", lErr.ResultCode, lErr.Err.Error())
+		}
+		return nil, lErr.Err
+	}
+	if len(result.Entries) == 1 {
+		return attrsToMap(result.Entries[0]), nil
+	}
+	return nil, fmt.Errorf("Amount of Entries returned was not one")
 }
 
 /*
@@ -142,27 +180,40 @@ with the Common Name group. error will be non-nil if some sort of server
 error occurred.
 */
 func Login(username, password, group string, config *Config) (bool, error) {
+	ok, _, err := LoginWithAttrs(username, password, group, config, nil)
+	return ok, err
+}
+
+/*
+LoginWithAttrs will function exectly like Login, but will return a given
+list of attributes for the user if login is successful.
+*/
+func LoginWithAttrs(username, password, group string, config *Config, attrs []string) (bool, map[string][]string, error) {
 	if password == "" {
-		return false, nil
+		return false, nil, nil
 	}
 	conn, err := config.Connect()
 	if err != nil {
-		return false, err
+		return false, nil, err
 	}
 	defer conn.Close()
 	domain, err := getDomain(config.BaseDN)
 	if err != nil {
-		return false, err
+		return false, nil, err
 	}
 	lErr := conn.Bind(fmt.Sprintf("%s@%s", username, domain), password)
 	if lErr != nil {
 		if config.Debug {
 			fmt.Printf("DEBUG: LDAP Error %d: %s", lErr.ResultCode, lErr.Err.Error())
 		}
-		return false, lErr.Err
+		return false, nil, lErr.Err
 	}
 	if group != "" {
-		return inGroup(username, group, config, conn)
+		return inGroup(username, group, config, conn, attrs)
 	}
-	return true, nil
+	entry_attrs, err := getAttrs(username, config, conn, attrs)
+	if err != nil {
+		return false, nil, err
+	}
+	return true, entry_attrs, nil
 }
