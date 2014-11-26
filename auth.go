@@ -149,6 +149,7 @@ func Login(username, password, group string, config *Config) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	defer conn.Close()
 	domain, err := getDomain(config.BaseDN)
 	if err != nil {
 		return false, err
