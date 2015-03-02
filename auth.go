@@ -1,60 +1,93 @@
 package auth
 
 import (
+	"crypto/tls"
 	"fmt"
-	"github.com/mmitton/ldap"
+	"log"
 	"strings"
+
+	"github.com/go-ldap/ldap"
 )
 
+//SecurityType specifies how to connect to an Active Directory server
+type SecurityType int
+
+//Security will default to SecurityNone if not given.
 const (
-	SEC_NONE = iota
-	SEC_SSL
-	SEC_TLS
+	SecurityNone SecurityType = iota
+	SecurityTLS
+	SecurityStartTLS
 )
 
+//ConfigError is an error resulting from a bad Config
+type ConfigError string
+
+func (c ConfigError) Error() string {
+	return string(c)
+}
+
+//LDAPError is a generic LDAP error
+type LDAPError string
+
+func (l LDAPError) Error() string {
+	return string(l)
+}
+
+//Config contains settings for connecting to an Active Directory server
 type Config struct {
-	Server   string
-	Port     int
-	BaseDN   string
-	Security int
-	Debug    bool //debug messages are written to stdout
+	Server    string
+	Port      int
+	BaseDN    string
+	Security  SecurityType
+	TLSConfig *tls.Config
+	Debug     bool //debug messages are written to stdout
 }
 
-func NewConfig(Server string, Port int, BaseDN string, Security int, Debug bool) *Config {
-	return &Config{Server, Port, BaseDN, Security, Debug}
-}
-
+//Connect returns an open connection to an Active Directory server specified by the given config
 func (c *Config) Connect() (*ldap.Conn, error) {
+	if c.TLSConfig == nil {
+		c.TLSConfig = &tls.Config{
+			ServerName: c.Server,
+		}
+	}
+
 	switch c.Security {
-	case SEC_NONE:
+	case SecurityNone:
 		conn, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port))
 		if err != nil {
 			if c.Debug {
-				fmt.Printf("DEBUG: LDAP Error %d: %s", err.ResultCode, err.Err.Error())
+				log.Printf("DEBUG: LDAP Error %v\n", err)
 			}
-			return nil, err.Err
+			return nil, err
 		}
 		return conn, nil
-	case SEC_SSL:
-		conn, err := ldap.DialSSL("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port))
+	case SecurityTLS:
+		conn, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port), c.TLSConfig)
 		if err != nil {
 			if c.Debug {
-				fmt.Printf("DEBUG: LDAP Error %d: %s", err.ResultCode, err.Err.Error())
+				log.Printf("DEBUG: LDAP Error %v\n", err)
 			}
-			return nil, err.Err
+			return nil, err
 		}
 		return conn, nil
-	case SEC_TLS:
-		conn, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port))
+	case SecurityStartTLS:
+		conn, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port))
 		if err != nil {
 			if c.Debug {
-				fmt.Printf("DEBUG: LDAP Error %d: %s", err.ResultCode, err.Err.Error())
+				log.Printf("DEBUG: LDAP Error %v\n", err)
 			}
-			return nil, err.Err
+			return nil, err
+		}
+		err = conn.StartTLS(c.TLSConfig)
+		if err != nil {
+			if c.Debug {
+				log.Printf("DEBUG: LDAP Error %v\n", err)
+			}
+			return nil, err
 		}
 		return conn, nil
 	default:
-		return nil, fmt.Errorf("Invalid Security setting")
+		return nil, ConfigError("Invalid Security setting")
 	}
 }
 
@@ -66,7 +99,7 @@ func getDomain(BaseDN string) (string, error) {
 		}
 	}
 	if len(domain) <= 1 {
-		return "", fmt.Errorf("Invalid BaseDN")
+		return "", ConfigError("Invalid BaseDN")
 	}
 	return domain[1:], nil
 }
@@ -85,14 +118,14 @@ func getDN(cn string, config *Config, conn *ldap.Conn) (string, error) {
 	result, err := conn.Search(search)
 	if err != nil {
 		if config.Debug {
-			fmt.Printf("DEBUG: LDAP Error %d: %s", err.ResultCode, err.Err.Error())
+			log.Printf("DEBUG: LDAP Error %v\n", err)
 		}
-		return "", err.Err
+		return "", err
 	}
 	if len(result.Entries) > 0 {
 		return result.Entries[0].DN, nil
 	}
-	return "", fmt.Errorf("No DN found for: %s", cn)
+	return "", ConfigError(fmt.Sprintf("No DN found for: %s", cn))
 }
 
 func attrsToMap(entry *ldap.Entry) map[string][]string {
@@ -107,7 +140,7 @@ func inGroup(username, group string, config *Config, conn *ldap.Conn, attrs []st
 	groupDN, err := getDN(group, config, conn)
 	if err != nil {
 		if config.Debug {
-			fmt.Printf("DEBUG: Error: %s", err)
+			log.Printf("DEBUG: Error: %s\n", err)
 		}
 		return false, nil, err
 	}
@@ -124,28 +157,28 @@ func inGroup(username, group string, config *Config, conn *ldap.Conn, attrs []st
 	result, lErr := conn.Search(search)
 	if lErr != nil {
 		if config.Debug {
-			fmt.Printf("DEBUG: LDAP Error %d: %s", lErr.ResultCode, lErr.Err.Error())
+			log.Printf("DEBUG: LDAP Error %v\n", lErr)
 		}
-		return false, nil, lErr.Err
+		return false, nil, lErr
 	}
 	if len(result.Entries) == 1 {
-		entry_attrs := attrsToMap(result.Entries[0])
-		if groups, ok := entry_attrs["memberOf"]; ok {
-			for _, group := range groups {
-				if groupDN == group {
+		entryAttrs := attrsToMap(result.Entries[0])
+		if groups, ok := entryAttrs["memberOf"]; ok {
+			for _, g := range groups {
+				if groupDN == g {
 					for _, key := range attrs {
 						if key == "memberOf" {
-							return true, entry_attrs, nil
+							return true, entryAttrs, nil
 						}
 					}
-					delete(entry_attrs, "memberOf")
-					return true, entry_attrs, nil
+					delete(entryAttrs, "memberOf")
+					return true, entryAttrs, nil
 				}
 			}
 		}
-
+		return false, entryAttrs, nil
 	}
-	return false, nil, fmt.Errorf("Amount of Entries returned was not one")
+	return false, nil, LDAPError("Amount of Entries returned was not one")
 }
 
 func getAttrs(username string, config *Config, conn *ldap.Conn, attrs []string) (map[string][]string, error) {
@@ -162,14 +195,14 @@ func getAttrs(username string, config *Config, conn *ldap.Conn, attrs []string) 
 	result, lErr := conn.Search(search)
 	if lErr != nil {
 		if config.Debug {
-			fmt.Printf("DEBUG: LDAP Error %d: %s", lErr.ResultCode, lErr.Err.Error())
+			log.Printf("DEBUG: LDAP Error %v\n", lErr)
 		}
-		return nil, lErr.Err
+		return nil, lErr
 	}
 	if len(result.Entries) == 1 {
 		return attrsToMap(result.Entries[0]), nil
 	}
-	return nil, fmt.Errorf("Amount of Entries returned was not one")
+	return nil, LDAPError("Amount of Entries returned was not one")
 }
 
 /*
@@ -197,6 +230,7 @@ func LoginWithAttrs(username, password, group string, config *Config, attrs []st
 		return false, nil, err
 	}
 	defer conn.Close()
+
 	domain, err := getDomain(config.BaseDN)
 	if err != nil {
 		return false, nil, err
@@ -204,16 +238,16 @@ func LoginWithAttrs(username, password, group string, config *Config, attrs []st
 	lErr := conn.Bind(fmt.Sprintf("%s@%s", username, domain), password)
 	if lErr != nil {
 		if config.Debug {
-			fmt.Printf("DEBUG: LDAP Error %d: %s", lErr.ResultCode, lErr.Err.Error())
+			log.Printf("DEBUG: LDAP Error %v\n", lErr)
 		}
-		return false, nil, lErr.Err
+		return false, nil, lErr
 	}
 	if group != "" {
 		return inGroup(username, group, config, conn, attrs)
 	}
-	entry_attrs, err := getAttrs(username, config, conn, attrs)
+	entryAttrs, err := getAttrs(username, config, conn, attrs)
 	if err != nil {
 		return false, nil, err
 	}
-	return true, entry_attrs, nil
+	return true, entryAttrs, nil
 }

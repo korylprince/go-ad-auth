@@ -13,7 +13,7 @@ The API is not set in stone, and will probably change in the future. This is mor
 
 **Dependencies:**
 
-[github.com/baris/ldap](https://github.com/baris/ldap)
+[github.com/go-ldap/ldap](https://github.com/go-ldap/ldap)
 
 If you have any issues or questions, email the email address below, or open an issue at:
 https://github.com/korylprince/go-ad-auth/issues

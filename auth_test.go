@@ -17,11 +17,11 @@ func TestGetDomain(t *testing.T) {
 			}
 		}
 	}
-	error_tests := []string{"",
+	errorTests := []string{"",
 		"com",
 		"ou=test",
 		"OU=test"}
-	for _, test := range error_tests {
+	for _, test := range errorTests {
 		if _, err := getDomain(test); err == nil {
 			t.Error("Failed Test:", test, "\n\tError: err not nil")
 		}
