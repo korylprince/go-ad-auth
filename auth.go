@@ -240,6 +240,11 @@ func LoginWithAttrs(username, password, group string, config *Config, attrs []st
 		if config.Debug {
 			log.Printf("DEBUG: LDAP Error %v\n", lErr)
 		}
+		if e, ok := lErr.(*ldap.Error); ok {
+			if e.ResultCode == ldap.LDAPResultInvalidCredentials {
+				return false, nil, nil
+			}
+		}
 		return false, nil, lErr
 	}
 	if group != "" {
