@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/go-ldap/ldap"
+	"gopkg.in/ldap.v2"
 )
 
 //SecurityType specifies how to connect to an Active Directory server

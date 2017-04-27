@@ -26,13 +26,19 @@ Or read the source. It's pretty simple and readable.
 
 Example:
 
-    config := auth.NewConfig("ad.example.com", 389, "ou=default,dc=example,dc=com", auth.SEC_NONE, false)
+	config := &auth.Config{
+		Server:   "ad.example.com",
+		Port:     389,
+		BaseDN:   "OU=bisd,DC=bullardisd,DC=net",
+		Security: auth.SecurityNone,
+		Debug:    false,
+	}
     status, err := auth.Login("kory.prince", "Super$ecret", "Domain Admins", config)
     //status is true if "Super$ecret" is the password for user "kory.prince" and that user is in the "Domain Admins" group.
 
 
 #Copyright Information#
 
-All other code is Copyright 2014 Kory Prince (korylprince at gmail dot com.)
+All other code is Copyright 2017 Kory Prince (korylprince at gmail dot com.)
 
 This code is licensed under the same license go is licensed under (with slight modification.) If you'd like another license please email me.
