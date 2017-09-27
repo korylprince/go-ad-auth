@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
+	"net/mail"
 	"strings"
 
 	"gopkg.in/ldap.v2"
@@ -136,7 +137,7 @@ func attrsToMap(entry *ldap.Entry) map[string][]string {
 	return m
 }
 
-func inGroup(username, group string, config *Config, conn *ldap.Conn, attrs []string) (bool, map[string][]string, error) {
+func inGroup(upn, group string, config *Config, conn *ldap.Conn, attrs []string) (bool, map[string][]string, error) {
 	groupDN, err := getDN(group, config, conn)
 	if err != nil {
 		if config.Debug {
@@ -150,7 +151,7 @@ func inGroup(username, group string, config *Config, conn *ldap.Conn, attrs []st
 		ldap.DerefAlways,
 		1, 0,
 		false,
-		fmt.Sprintf("(sAMAccountName=%s)", username),
+		fmt.Sprintf("(userPrincipalName=%s)", upn),
 		append(attrs, "memberOf"),
 		nil,
 	)
@@ -181,14 +182,14 @@ func inGroup(username, group string, config *Config, conn *ldap.Conn, attrs []st
 	return false, nil, LDAPError("Amount of Entries returned was not one")
 }
 
-func getAttrs(username string, config *Config, conn *ldap.Conn, attrs []string) (map[string][]string, error) {
+func getAttrs(upn string, config *Config, conn *ldap.Conn, attrs []string) (map[string][]string, error) {
 	search := ldap.NewSearchRequest(
 		config.BaseDN,
 		ldap.ScopeWholeSubtree,
 		ldap.DerefAlways,
 		1, 0,
 		false,
-		fmt.Sprintf("(sAMAccountName=%s)", username),
+		fmt.Sprintf("(userPrincipalName=%s)", upn),
 		attrs,
 		nil,
 	)
@@ -207,10 +208,11 @@ func getAttrs(username string, config *Config, conn *ldap.Conn, attrs []string) 
 
 /*
 Login will check if the given username and password authenticate
-correctly with server given by config. If group is not an empty string
-then Login will verify that the user is in the Active Directory Group
-with the Common Name group. error will be non-nil if some sort of server
-error occurred.
+correctly with server given by config.
+username can be in the sAMAccountName or userPrincipalName format.
+If group is not an empty string then Login will verify that the user
+is in the Active Directory Group with the Common Name group.
+error will be non-nil if some sort of server error occurred.
 */
 func Login(username, password, group string, config *Config) (bool, error) {
 	ok, _, err := LoginWithAttrs(username, password, group, config, nil)
@@ -235,7 +237,15 @@ func LoginWithAttrs(username, password, group string, config *Config, attrs []st
 	if err != nil {
 		return false, nil, err
 	}
-	lErr := conn.Bind(fmt.Sprintf("%s@%s", username, domain), password)
+
+	var upn string
+	if _, err := mail.ParseAddress(username); err == nil {
+		upn = username
+	} else {
+		upn = fmt.Sprintf("%s@%s", username, domain)
+	}
+
+	lErr := conn.Bind(upn, password)
 	if lErr != nil {
 		if config.Debug {
 			log.Printf("DEBUG: LDAP Error %v\n", lErr)
@@ -248,9 +258,9 @@ func LoginWithAttrs(username, password, group string, config *Config, attrs []st
 		return false, nil, lErr
 	}
 	if group != "" {
-		return inGroup(username, group, config, conn, attrs)
+		return inGroup(upn, group, config, conn, attrs)
 	}
-	entryAttrs, err := getAttrs(username, config, conn, attrs)
+	entryAttrs, err := getAttrs(upn, config, conn, attrs)
 	if err != nil {
 		return false, nil, err
 	}
