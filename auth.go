@@ -239,7 +239,7 @@ func LoginWithAttrs(username, password, group string, config *Config, attrs []st
 	}
 
 	var upn string
-	if _, err := mail.ParseAddress(username); err == nil {
+	if _, err = mail.ParseAddress(username); err == nil {
 		upn = username
 	} else {
 		upn = fmt.Sprintf("%s@%s", username, domain)
