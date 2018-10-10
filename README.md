@@ -1,43 +1,70 @@
-[go-ad-auth](https://github.com/korylprince/go-ad-auth)
+[![GoDoc](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v2?status.svg)](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v2)
 
-Simple Active Directory Authentication for Go.
+# About
 
-The API is considered stable.
-
-[![GoDoc](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v1?status.svg)](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v1)
+`go-ad-auth` is a simple wrapper around the great [ldap](https://github.com/go-ldap/ldap) library to help with Active Directory authentication.
 
 # Installing
 
-`go get gopkg.in/korylprince/go-ad-auth.v1`
+`go get gopkg.in/korylprince/go-ad-auth.v2`
 
 **Dependencies:**
 
-[github.com/go-ldap/ldap](https://github.com/go-ldap/ldap)
+* [github.com/go-ldap/ldap](https://github.com/go-ldap/ldap)
+* [golang.org/x/text/encoding/unicode](https://godoc.org/golang.org/x/text/encoding/unicode)
 
-If you have any issues or questions, email the email address below, or open an issue at:
-https://github.com/korylprince/go-ad-auth/issues
+If you have any issues or questions [create an issue](https://github.com/korylprince/go-ad-auth/issues).
+
+# New API
+
+The `v2` API is almost a complete rewrite of the older [`gopkg.in/korylprince/go-ad-auth.v1`](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v1) API. There are similarities, but `v2` is not backwards-compatible. 
+
+The new API exposes a lot more functionality and is fully testable.
 
 # Usage
 
-`godoc gopkg.in/korylprince/go-ad-auth.v1`
-
-Or read the source. It's pretty simple and readable.
+`godoc gopkg.in/korylprince/go-ad-auth.v2`
 
 Example:
 
-	config := &auth.Config{
-		Server:   "ad.example.com",
-		Port:     389,
-		BaseDN:   "OU=Users,DC=example,DC=com",
-		Security: auth.SecurityNone,
-		Debug:    false,
-	}
-    status, err := auth.Login("kory.prince", "Super$ecret", "Domain Admins", config)
-    //status is true if "Super$ecret" is the password for user "kory.prince" and that user is in the "Domain Admins" group.
+```go
+config := &auth.Config{
+    Server:   "ldap.example.com",
+    Port:     389,
+    BaseDN:   "OU=Users,DC=example,DC=com",
+    Security: auth.SecurityStartTLS,
+}
 
+username := "user"
+password := "pass"
 
-# Copyright Information
+status, err := auth.Authenticate(config, username, password)
 
-All other code is Copyright 2018 Kory Prince (korylprince at gmail dot com.)
+if err != nil {
+    //handle err
+    return
+}
 
-This code is licensed under the same license go is licensed under (with slight modification.) If you'd like another license please email me.
+if !status {
+    //handle failed authentication
+    return
+}
+```
+
+See more examples on [GoDoc](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v2).
+
+# Testing
+
+`go test -v`
+
+Most tests will be skipped unless you supply the following environment variables to connect to an Active Directory server:
+
+| Name                    | Description |
+| ----------------------- | ------------- |
+| ADTEST_SERVER           | Hostname or IP Address of an Active Directory server |
+| ADTEST_PORT             | Port to use - defaults to 389 |
+| ADTEST_BIND_UPN         | userPrincipalName (user@domain.tld) of admin user |
+| ADTEST_BIND_PASS        | Password of admin user |
+| ADTEST_BIND_SECURITY    | `NONE` \|\| `TLS` \|\| `STARTTLS` - defaults to `STARTTLS` |
+| ADTEST_BASEDN           | LDAP Base DN - for testing the root DN is recommended, e.g. `DC=example,DC=com` |
+| ADTEST_PASSWORD_UPN     | userPrincipalName of a test user that will be used to test password changing functions |
