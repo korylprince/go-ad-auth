@@ -19,7 +19,9 @@ If you have any issues or questions [create an issue](https://github.com/korylpr
 
 The `v2` API is almost a complete rewrite of the older [`gopkg.in/korylprince/go-ad-auth.v1`](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v1) API. There are similarities, but `v2` is not backwards-compatible. 
 
-The new API exposes a lot more functionality and is fully testable.
+The new API is cleaner, more idiomatic, exposes a lot more functionality and is fully testable.
+
+One notable difference to be careful of is that while `v1`'s `Login` will return `false` if the user is not in the specified group, `v2`'s `AuthenticateExtended` will return `true` if the user authenticated successfully, regardless if they were in any of the specified groups or not.
 
 # Usage
 
