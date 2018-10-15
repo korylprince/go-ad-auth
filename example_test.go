@@ -1,6 +1,10 @@
 package auth
 
-import auth "gopkg.in/korylprince/go-ad-auth.v2"
+import (
+	"fmt"
+
+	auth "gopkg.in/korylprince/go-ad-auth.v2"
+)
 
 func ExampleAuthenticate() {
 	config := &auth.Config{
@@ -57,6 +61,8 @@ func ExampleAuthenticateExtended() {
 
 	//get attributes
 	cn := attrs["cn"][0]
+
+	fmt.Println(cn)
 }
 
 func ExampleUpdatePassword() {
