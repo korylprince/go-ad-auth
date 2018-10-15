@@ -164,7 +164,7 @@ func TestAuthenticateExtended(t *testing.T) {
 	sort.Strings(userCNGroups)
 
 	if len(cnGroups) != len(userCNGroups) {
-		t.Errorf("Expected returned group count (%d) to be equal to searched group count (%d)", len(userCNGroups), len(cnGroups))
+		t.Fatalf("Expected returned group count (%d) to be equal to searched group count (%d)", len(userCNGroups), len(cnGroups))
 	}
 
 	for i := range cnGroups {
