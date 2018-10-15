@@ -21,7 +21,7 @@ func Authenticate(config *Config, username, password string) (bool, error) {
 //username may be either the sAMAccountName or the userPrincipalName.
 //If attrs is non-empty, userAttrs will hold the requested LDAP attributes.
 //If groups is non-empty, userGroups will hold which of those groups the user is a member of.
-//groups can be a list of groups referenced by DN or cn.
+//groups can be a list of groups referenced by DN or cn and the format provided will be the format returned.
 func AuthenticateExtended(config *Config, username, password string, attrs, groups []string) (status bool, userAttrs map[string][]string, userGroups []string, err error) {
 	upn, err := config.UPN(username)
 	if err != nil {
@@ -62,21 +62,15 @@ func AuthenticateExtended(config *Config, username, password string, attrs, grou
 	}
 
 	if len(groups) > 0 {
-		//get group DNs
-		var parentGroups []string
 		for _, group := range groups {
-			parentGroup, err := conn.GroupDN(group)
+			groupDN, err := conn.GroupDN(group)
 			if err != nil {
 				return false, nil, nil, err
 			}
-			parentGroups = append(parentGroups, parentGroup)
-		}
 
-		//check which groups user is part of
-		for _, userGroup := range userAttrs["memberOf"] {
-			for _, parentGroup := range parentGroups {
-				if userGroup == parentGroup {
-					userGroups = append(userGroups, parentGroup)
+			for _, userGroup := range userAttrs["memberOf"] {
+				if userGroup == groupDN {
+					userGroups = append(userGroups, group)
 					continue
 				}
 			}

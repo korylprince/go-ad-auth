@@ -135,16 +135,21 @@ func TestAuthenticateExtended(t *testing.T) {
 		t.Error("memberOf attrs: Expected authenticate status to be true")
 	}
 
+	//use dn for even groups and cn for odd groups
 	dnGroups := attrs["memberOf"]
-	var cnGroups []string
-	for _, group := range dnGroups {
-		cn := dnToCN(group)
-		if cn != "" {
-			cnGroups = append(cnGroups, cn)
+	var checkGroups []string
+	for i, group := range dnGroups {
+		if i%2 == 0 {
+			checkGroups = append(checkGroups, group)
+		} else {
+			cn := dnToCN(group)
+			if cn != "" {
+				checkGroups = append(checkGroups, cn)
+			}
 		}
 	}
 
-	status, _, userDNGroups, err := AuthenticateExtended(config, testConfig.BindUPN, testConfig.BindPass, nil, cnGroups)
+	status, _, userGroups, err := AuthenticateExtended(config, testConfig.BindUPN, testConfig.BindPass, nil, checkGroups)
 	if err != nil {
 		t.Fatal("memberOf attrs: Expected err to be nil but got:", err)
 	}
@@ -152,24 +157,16 @@ func TestAuthenticateExtended(t *testing.T) {
 		t.Error("memberOf attrs: Expected authenticate status to be true")
 	}
 
-	var userCNGroups []string
-	for _, group := range userDNGroups {
-		cn := dnToCN(group)
-		if cn != "" {
-			userCNGroups = append(userCNGroups, cn)
-		}
+	sort.Strings(checkGroups)
+	sort.Strings(userGroups)
+
+	if len(checkGroups) != len(userGroups) {
+		t.Fatalf("Expected returned group count (%d) to be equal to searched group count (%d)", len(userGroups), len(checkGroups))
 	}
 
-	sort.Strings(cnGroups)
-	sort.Strings(userCNGroups)
-
-	if len(cnGroups) != len(userCNGroups) {
-		t.Fatalf("Expected returned group count (%d) to be equal to searched group count (%d)", len(userCNGroups), len(cnGroups))
-	}
-
-	for i := range cnGroups {
-		if cnGroups[i] != userCNGroups[i] {
-			t.Fatalf("Expected returned group (%s) to be equal to searched group (%s):", userCNGroups[i], cnGroups[i])
+	for i := range checkGroups {
+		if checkGroups[i] != userGroups[i] {
+			t.Fatalf("Expected returned group (%s) to be equal to searched group (%s):", userGroups[i], checkGroups[i])
 		}
 	}
 }
