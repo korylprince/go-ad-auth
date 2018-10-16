@@ -169,4 +169,10 @@ func TestAuthenticateExtended(t *testing.T) {
 			t.Fatalf("Expected returned group (%s) to be equal to searched group (%s):", userGroups[i], checkGroups[i])
 		}
 	}
+
+	for _, attr := range entry.Attributes {
+		if attr.Name == "memberOf" {
+			t.Error("memberOf check: Expected memberOf to not be present")
+		}
+	}
 }
