@@ -1,5 +1,7 @@
 package auth
 
+import ldap "gopkg.in/ldap.v2"
+
 //Authenticate checks if the given credentials are valid, or returns an error if one occurred.
 //username may be either the sAMAccountName or the userPrincipalName.
 func Authenticate(config *Config, username, password string) (bool, error) {
@@ -19,10 +21,10 @@ func Authenticate(config *Config, username, password string) (bool, error) {
 
 //AuthenticateExtended checks if the given credentials are valid, or returns an error if one occurred.
 //username may be either the sAMAccountName or the userPrincipalName.
-//If attrs is non-empty, userAttrs will hold the requested LDAP attributes.
+//entry is the *ldap.Entry that holds the DN and any request attributes of the user.
 //If groups is non-empty, userGroups will hold which of those groups the user is a member of.
 //groups can be a list of groups referenced by DN or cn and the format provided will be the format returned.
-func AuthenticateExtended(config *Config, username, password string, attrs, groups []string) (status bool, userAttrs map[string][]string, userGroups []string, err error) {
+func AuthenticateExtended(config *Config, username, password string, attrs, groups []string) (status bool, entry *ldap.Entry, userGroups []string, err error) {
 	upn, err := config.UPN(username)
 	if err != nil {
 		return false, nil, nil, err
@@ -55,8 +57,8 @@ func AuthenticateExtended(config *Config, username, password string, attrs, grou
 		attrs = append(attrs, "memberOf")
 	}
 
-	//get attributes
-	userAttrs, err = conn.GetAttributes("userPrincipalName", upn, attrs)
+	//get entry
+	entry, err = conn.GetAttributes("userPrincipalName", upn, attrs)
 	if err != nil {
 		return false, nil, nil, err
 	}
@@ -68,7 +70,7 @@ func AuthenticateExtended(config *Config, username, password string, attrs, grou
 				return false, nil, nil, err
 			}
 
-			for _, userGroup := range userAttrs["memberOf"] {
+			for _, userGroup := range entry.GetAttributeValues("memberOf") {
 				if userGroup == groupDN {
 					userGroups = append(userGroups, group)
 					continue
@@ -79,8 +81,14 @@ func AuthenticateExtended(config *Config, username, password string, attrs, grou
 
 	//remove memberOf if it wasn't requested
 	if !memberOfPresent && len(groups) > 0 {
-		delete(userAttrs, "memberOf")
+		var entryAttrs []*ldap.EntryAttribute
+		for _, e := range entry.Attributes {
+			if e.Name != "memberOf" {
+				entryAttrs = append(entryAttrs, e)
+			}
+		}
+		entry.Attributes = entryAttrs
 	}
 
-	return status, userAttrs, userGroups, nil
+	return status, entry, userGroups, nil
 }

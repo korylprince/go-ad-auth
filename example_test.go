@@ -42,7 +42,7 @@ func ExampleAuthenticateExtended() {
 	username := "user"
 	password := "pass"
 
-	status, attrs, groups, err := auth.AuthenticateExtended(config, username, password, []string{"cn"}, []string{"Domain Admins"})
+	status, entry, groups, err := auth.AuthenticateExtended(config, username, password, []string{"cn"}, []string{"Domain Admins"})
 
 	if err != nil {
 		//handle err
@@ -60,7 +60,7 @@ func ExampleAuthenticateExtended() {
 	}
 
 	//get attributes
-	cn := attrs["cn"][0]
+	cn := entry.GetAttributeValue("cn")
 
 	fmt.Println(cn)
 }

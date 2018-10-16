@@ -70,20 +70,7 @@ func (c *Conn) GetDN(attr, value string) (string, error) {
 	return entry.DN, nil
 }
 
-func attrsToMap(attrs []*ldap.EntryAttribute) map[string][]string {
-	m := make(map[string][]string)
-	for _, attr := range attrs {
-		m[attr.Name] = attr.Values
-	}
-	return m
-}
-
-//GetAttributes returns the given attributes for the object with the given attribute value or an error if one occurred.
-func (c *Conn) GetAttributes(attr, value string, attrs []string) (map[string][]string, error) {
-	entry, err := c.SearchOne(fmt.Sprintf("(%s=%s)", attr, value), attrs)
-	if err != nil {
-		return nil, err
-	}
-
-	return attrsToMap(entry.Attributes), nil
+//GetAttributes returns the *ldap.Entry with the given attributes for the object with the given attribute value or an error if one occurred.
+func (c *Conn) GetAttributes(attr, value string, attrs []string) (*ldap.Entry, error) {
+	return c.SearchOne(fmt.Sprintf("(%s=%s)", attr, value), attrs)
 }

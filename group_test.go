@@ -48,12 +48,12 @@ func TestConnGroupDN(t *testing.T) {
 		t.Fatal("Error binding to server: invalid credentials")
 	}
 
-	attrs, err := conn.GetAttributes("userPrincipalName", testConfig.BindUPN, []string{"memberOf"})
+	entry, err := conn.GetAttributes("userPrincipalName", testConfig.BindUPN, []string{"memberOf"})
 	if err != nil {
 		t.Fatal("Error getting user groups:", err)
 	}
 
-	dnGroups := attrs["memberOf"]
+	dnGroups := entry.GetAttributeValues("memberOf")
 
 	if len(dnGroups) == 0 {
 		t.Skip("BIND_UPN user not member of any groups")
@@ -115,12 +115,12 @@ func TestConnObjectGroups(t *testing.T) {
 		t.Fatal("Error binding to server: invalid credentials")
 	}
 
-	attrs, err := conn.GetAttributes("userPrincipalName", testConfig.BindUPN, []string{"memberOf"})
+	entry, err := conn.GetAttributes("userPrincipalName", testConfig.BindUPN, []string{"memberOf"})
 	if err != nil {
 		t.Fatal("Error getting user groups:", err)
 	}
 
-	dnGroups := attrs["memberOf"]
+	dnGroups := entry.GetAttributeValues("memberOf")
 
 	if len(dnGroups) == 0 {
 		t.Skip("BIND_UPN user not member of any groups")

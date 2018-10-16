@@ -127,7 +127,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		t.Error("Valid username: Expected authenticate status to be true")
 	}
 
-	status, attrs, _, err := AuthenticateExtended(config, testConfig.BindUPN, testConfig.BindPass, []string{"memberOf"}, nil)
+	status, entry, _, err := AuthenticateExtended(config, testConfig.BindUPN, testConfig.BindPass, []string{"memberOf"}, nil)
 	if err != nil {
 		t.Fatal("memberOf attrs: Expected err to be nil but got:", err)
 	}
@@ -136,7 +136,7 @@ func TestAuthenticateExtended(t *testing.T) {
 	}
 
 	//use dn for even groups and cn for odd groups
-	dnGroups := attrs["memberOf"]
+	dnGroups := entry.GetAttributeValues("memberOf")
 	var checkGroups []string
 	for i, group := range dnGroups {
 		if i%2 == 0 {
@@ -149,7 +149,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		}
 	}
 
-	status, _, userGroups, err := AuthenticateExtended(config, testConfig.BindUPN, testConfig.BindPass, nil, checkGroups)
+	status, entry, userGroups, err := AuthenticateExtended(config, testConfig.BindUPN, testConfig.BindPass, nil, checkGroups)
 	if err != nil {
 		t.Fatal("memberOf attrs: Expected err to be nil but got:", err)
 	}

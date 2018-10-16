@@ -117,12 +117,12 @@ func TestConnSearchOne(t *testing.T) {
 		t.Error("GetAttributes: multiple entries: Expected multiple entries search error but got:", err)
 	}
 
-	attrs, err := conn.GetAttributes("userPrincipalName", testConfig.BindUPN, []string{"cn"})
+	entry, err := conn.GetAttributes("userPrincipalName", testConfig.BindUPN, []string{"cn"})
 	if err != nil {
 		t.Fatal("GetAttributes: expected err to be nil but got:", err)
 	}
 
-	if _, err = conn.GetDN("cn", attrs["cn"][0]); err != nil {
+	if _, err = conn.GetDN("cn", entry.GetAttributeValue("cn")); err != nil {
 		t.Fatal("GetDN: expected err to be nil but got:", err)
 	}
 }
