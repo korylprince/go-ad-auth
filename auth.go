@@ -73,7 +73,7 @@ func AuthenticateExtended(config *Config, username, password string, attrs, grou
 			for _, userGroup := range entry.GetAttributeValues("memberOf") {
 				if userGroup == groupDN {
 					userGroups = append(userGroups, group)
-					continue
+					break
 				}
 			}
 		}
