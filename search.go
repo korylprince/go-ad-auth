@@ -61,8 +61,9 @@ func (c *Conn) SearchOne(filter string, attrs []string) (*ldap.Entry, error) {
 }
 
 //GetDN returns the DN for the object with the given attribute value or an error if one occurred.
+//attr and value are sanitized.
 func (c *Conn) GetDN(attr, value string) (string, error) {
-	entry, err := c.SearchOne(fmt.Sprintf("(%s=%s)", attr, value), nil)
+	entry, err := c.SearchOne(fmt.Sprintf("(%s=%s)", ldap.EscapeFilter(attr), ldap.EscapeFilter(value)), nil)
 	if err != nil {
 		return "", err
 	}
@@ -71,6 +72,7 @@ func (c *Conn) GetDN(attr, value string) (string, error) {
 }
 
 //GetAttributes returns the *ldap.Entry with the given attributes for the object with the given attribute value or an error if one occurred.
+//attr and value are sanitized.
 func (c *Conn) GetAttributes(attr, value string, attrs []string) (*ldap.Entry, error) {
-	return c.SearchOne(fmt.Sprintf("(%s=%s)", attr, value), attrs)
+	return c.SearchOne(fmt.Sprintf("(%s=%s)", ldap.EscapeFilter(attr), ldap.EscapeFilter(value)), attrs)
 }
