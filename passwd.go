@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"golang.org/x/text/encoding/unicode"
-	ldap "gopkg.in/ldap.v2"
+	ldap "gopkg.in/ldap.v3"
 )
 
 //ModifyDNPassword sets a new password for the given user or returns an error if one occurred.
@@ -17,7 +17,7 @@ func (c *Conn) ModifyDNPassword(dn, newPasswd string) error {
 		return fmt.Errorf("Password error: Unable to encode password: %v", err)
 	}
 
-	req := ldap.NewModifyRequest(dn)
+	req := ldap.NewModifyRequest(dn, nil)
 	req.Replace("unicodePwd", []string{encoded})
 
 	err = c.Conn.Modify(req)
@@ -67,7 +67,7 @@ func UpdatePassword(config *Config, username, oldPasswd, newPasswd string) error
 		return err
 	}
 
-	req := ldap.NewModifyRequest(dn)
+	req := ldap.NewModifyRequest(dn, nil)
 	req.Delete("unicodePwd", []string{oldEncoded})
 	req.Add("unicodePwd", []string{newEncoded})
 

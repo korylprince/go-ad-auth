@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	ldap "gopkg.in/ldap.v2"
+	ldap "gopkg.in/ldap.v3"
 )
 
 //Conn represents an Active Directory connection.

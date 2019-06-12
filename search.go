@@ -3,7 +3,7 @@ package auth
 import (
 	"fmt"
 
-	ldap "gopkg.in/ldap.v2"
+	ldap "gopkg.in/ldap.v3"
 )
 
 //Search returns the entries for the given search criteria or an error if one occurred.
