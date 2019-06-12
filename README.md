@@ -70,3 +70,9 @@ Most tests will be skipped unless you supply the following environment variables
 | ADTEST_BIND_SECURITY    | `NONE` \|\| `TLS` \|\| `STARTTLS` - defaults to `STARTTLS` |
 | ADTEST_BASEDN           | LDAP Base DN - for testing the root DN is recommended, e.g. `DC=example,DC=com` |
 | ADTEST_PASSWORD_UPN     | userPrincipalName of a test user that will be used to test password changing functions |
+
+# Security
+
+[SQL Injection](https://en.wikipedia.org/wiki/SQL_injection) is a well known attack vector, and most SQL libraries provide mitigations such as [prepared statements](https://en.wikipedia.org/wiki/Prepared_statement). Similarly, [LDAP Injection](https://www.owasp.org/index.php/Testing_for_LDAP_Injection_\(OTG-INPVAL-006\)), while not seen often in the wild, is something we should be concerned with.
+
+Since `v2.2.0`, this library sanitizes inputs (with [`ldap.EscapeFilter`](https://godoc.org/gopkg.in/ldap.v3#EscapeFilter)) that are used to create LDAP filters in library functions, namely [`GetDN`](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v2#Conn.GetDN) and [`GetAttributes`](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v2#Conn.GetAttributes). This means high level functions in this library are protected against malicious inputs. If you use [`Search`](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v2#Conn.Search) or [`SearchOne`](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v2#Conn.SearchOne), take care to sanitize any untrusted inputs you use in your LDAP filter.
