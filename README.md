@@ -1,10 +1,16 @@
-[![GoDoc](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v2?status.svg)](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v2)
+[![GoDoc](https://godoc.org/github.com/korylprince/go-ad-auth?status.svg)](https://godoc.org/github.com/korylprince/go-ad-auth)
 
 # About
 
 `go-ad-auth` is a simple wrapper around the great [ldap](https://github.com/go-ldap/ldap) library to help with Active Directory authentication.
 
 # Installing
+
+Using Go Modules (v3): 
+
+`go get github.com/korylprince/go-ad-auth/v3`
+
+Using gopkg.in (v2):
 
 `go get gopkg.in/korylprince/go-ad-auth.v2`
 
@@ -16,6 +22,8 @@
 If you have any issues or questions [create an issue](https://github.com/korylprince/go-ad-auth/issues).
 
 # New API
+
+The `v3` API is identical to `v2`, with the addition of support for Go Modules.
 
 The `v2` API is almost a complete rewrite of the older [`gopkg.in/korylprince/go-ad-auth.v1`](https://godoc.org/gopkg.in/korylprince/go-ad-auth.v1) API. There are similarities, but `v2` is not backwards-compatible. 
 
