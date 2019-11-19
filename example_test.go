@@ -1,9 +1,9 @@
-package auth
+package auth_test
 
 import (
 	"fmt"
 
-	auth "gopkg.in/korylprince/go-ad-auth.v2"
+	auth "github.com/korylprince/go-ad-auth/v3"
 )
 
 func ExampleAuthenticate() {

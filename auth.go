@@ -1,6 +1,6 @@
 package auth
 
-import ldap "gopkg.in/ldap.v3"
+import ldap "github.com/go-ldap/ldap/v3"
 
 //Authenticate checks if the given credentials are valid, or returns an error if one occurred.
 //username may be either the sAMAccountName or the userPrincipalName.
