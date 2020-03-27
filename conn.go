@@ -44,7 +44,7 @@ func (c *Config) Connect() (*Conn, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Connection error: %v", err)
 		}
-		err = conn.StartTLS(&tls.Config{ServerName: c.Server, InsecureSkipVerify:true})
+		err = conn.StartTLS(&tls.Config{ServerName: c.Server, InsecureSkipVerify: true})
 		if err != nil {
 			return nil, fmt.Errorf("Connection error: %v", err)
 		}

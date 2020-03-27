@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"golang.org/x/text/encoding/unicode"
 	ldap "github.com/go-ldap/ldap/v3"
+	"golang.org/x/text/encoding/unicode"
 )
 
 //ModifyDNPassword sets a new password for the given user or returns an error if one occurred.

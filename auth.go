@@ -1,6 +1,9 @@
 package auth
 
-import ldap "github.com/go-ldap/ldap/v3"
+import (
+	"fmt"
+	ldap "github.com/go-ldap/ldap/v3"
+)
 
 //Authenticate checks if the given credentials are valid, or returns an error if one occurred.
 //username may be either the sAMAccountName or the userPrincipalName.
@@ -75,6 +78,22 @@ func AuthenticateExtended(config *Config, username, password string, attrs, grou
 					userGroups = append(userGroups, group)
 					break
 				}
+			}
+		}
+	}
+
+	// Search for group membership
+	if len(groups) > 0 {
+		for _, group := range groups {
+			groupFilter := ""
+			g, err := conn.GetAttributes("cn", group, []string{"dn"})
+			if err == nil {
+				groupFilter = fmt.Sprintf("(memberOf:1.2.840.113556.1.4.1941:=%s)", g.DN)
+			}
+			filter := fmt.Sprintf("(&(objectCategory=Person)(sAMAccountName=%s)(|", username) + groupFilter + "))"
+			results, _ := conn.Search(filter, []string{"*"}, 100)
+			if len(results) > 0 {
+				userGroups = append(userGroups, group)
 			}
 		}
 	}
