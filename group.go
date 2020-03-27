@@ -1,8 +1,11 @@
 package auth
 
 import (
+	"fmt"
 	"strings"
 )
+
+const LDAPMatchingRuleInChain = "1.2.840.113556.1.4.1941"
 
 //GroupDN returns the DN of the group with the given cn or an error if one occurred.
 func (c *Conn) GroupDN(group string) (string, error) {
@@ -15,21 +18,32 @@ func (c *Conn) GroupDN(group string) (string, error) {
 
 //ObjectGroups returns which of the given groups (referenced by DN) the object with the given attribute value is in,
 //if any, or an error if one occurred.
+//Setting attr to "dn" and value to the DN of an object will avoid an extra LDAP search to get the object's DN.
 func (c *Conn) ObjectGroups(attr, value string, groups []string) ([]string, error) {
-	entry, err := c.GetAttributes(attr, value, []string{"memberOf"})
+	dn := value
+	if attr != "dn" {
+		entry, err := c.GetAttributes(attr, value, nil)
+		if err != nil {
+			return nil, err
+		}
+		dn = entry.DN
+	}
+
+	objectGroups, err := c.Search(fmt.Sprintf("(member:%s:=%s)", LDAPMatchingRuleInChain, dn), nil, 1000)
 	if err != nil {
 		return nil, err
 	}
-	var objectGroups []string
 
-	for _, objectGroup := range entry.GetAttributeValues("memberOf") {
+	var matchedGroups []string
+
+	for _, objectGroup := range objectGroups {
 		for _, parentGroup := range groups {
-			if objectGroup == parentGroup {
-				objectGroups = append(objectGroups, parentGroup)
+			if objectGroup.DN == parentGroup {
+				matchedGroups = append(matchedGroups, parentGroup)
 				continue
 			}
 		}
 	}
 
-	return objectGroups, nil
+	return matchedGroups, nil
 }

@@ -148,4 +148,21 @@ func TestConnObjectGroups(t *testing.T) {
 			t.Fatalf("Expected returned group (%s) to be equal to searched group (%s):", userGroups[i], dnGroups[i])
 		}
 	}
+
+	userGroups, err = conn.ObjectGroups("dn", entry.DN, dnGroups)
+	if err != nil {
+		t.Fatal("Using DN: Expected err to be nil but got:", err)
+	}
+
+	sort.Strings(userGroups)
+
+	if len(dnGroups) != len(userGroups) {
+		t.Errorf("Using DN: Expected returned group count (%d) to be equal to searched group count (%d)", len(userGroups), len(dnGroups))
+	}
+
+	for i := range dnGroups {
+		if dnGroups[i] != userGroups[i] {
+			t.Fatalf("Using DN: Expected returned group (%s) to be equal to searched group (%s):", userGroups[i], dnGroups[i])
+		}
+	}
 }
