@@ -50,7 +50,6 @@ func TestConnSearch(t *testing.T) {
 	if _, err := conn.Search(fmt.Sprintf("(userPrincipalName=%s)", testConfig.BindUPN), nil, 0); err != nil {
 		t.Error("Valid search: Expected err to be nil but got:", err)
 	}
-
 }
 
 func TestConnSearchOne(t *testing.T) {

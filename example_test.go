@@ -28,7 +28,6 @@ func ExampleAuthenticate() {
 		//handle failed authentication
 		return
 	}
-
 }
 
 func ExampleAuthenticateExtended() {
