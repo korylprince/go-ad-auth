@@ -1,4 +1,4 @@
-module github.com/korylprince/go-ad-auth/v3
+module github.com/marstid/go-ad-auth/v3
 
 go 1.13
 
