@@ -149,7 +149,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		}
 	}
 
-	status, entry, userGroups, err := AuthenticateExtended(config, testConfig.BindUPN, testConfig.BindPass, []string{""}, checkGroups)
+	status, entry, userGroups, err := AuthenticateExtended(config, testConfig.BindUPN, testConfig.BindPass, []string{"sAMAccountName"}, checkGroups)
 	if err != nil {
 		t.Fatal("memberOf attrs: Expected err to be nil but got:", err)
 	}
@@ -170,9 +170,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		}
 	}
 
-	for _, attr := range entry.Attributes {
-		if attr.Name == "memberOf" {
-			t.Error("memberOf check: Expected memberOf to not be present")
-		}
+	if entry.GetAttributeValue("sAMAccountName") != username {
+		t.Fatalf("Expected sAMAccountName (%s) to be equal to username (%s)", entry.GetAttributeValue("sAMAccountName"), username)
 	}
 }

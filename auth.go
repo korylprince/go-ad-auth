@@ -1,6 +1,10 @@
 package auth
 
-import ldap "github.com/go-ldap/ldap/v3"
+import (
+	"fmt"
+
+	ldap "github.com/go-ldap/ldap/v3"
+)
 
 //Authenticate checks if the given credentials are valid, or returns an error if one occurred.
 //username may be either the sAMAccountName or the userPrincipalName.
@@ -45,18 +49,6 @@ func AuthenticateExtended(config *Config, username, password string, attrs, grou
 		return false, nil, nil, nil
 	}
 
-	//add memberOf attribute if necessary
-	memberOfPresent := false
-	for _, a := range attrs {
-		if a == "memberOf" {
-			memberOfPresent = true
-			break
-		}
-	}
-	if !memberOfPresent && len(groups) > 0 {
-		attrs = append(attrs, "memberOf")
-	}
-
 	//get entry
 	entry, err = conn.GetAttributes("userPrincipalName", upn, attrs)
 	if err != nil {
@@ -64,30 +56,25 @@ func AuthenticateExtended(config *Config, username, password string, attrs, grou
 	}
 
 	if len(groups) > 0 {
+		//get all groups
+		foundGroups, err := conn.Search(fmt.Sprintf("(member:%s:=%s)", LDAPMatchingRuleInChain, entry.DN), []string{""}, 1000)
+		if err != nil {
+			return false, nil, nil, err
+		}
+
 		for _, group := range groups {
 			groupDN, err := conn.GroupDN(group)
 			if err != nil {
 				return false, nil, nil, err
 			}
 
-			for _, userGroup := range entry.GetAttributeValues("memberOf") {
-				if userGroup == groupDN {
+			for _, userGroup := range foundGroups {
+				if userGroup.DN == groupDN {
 					userGroups = append(userGroups, group)
 					break
 				}
 			}
 		}
-	}
-
-	//remove memberOf if it wasn't requested
-	if !memberOfPresent && len(groups) > 0 {
-		var entryAttrs []*ldap.EntryAttribute
-		for _, e := range entry.Attributes {
-			if e.Name != "memberOf" {
-				entryAttrs = append(entryAttrs, e)
-			}
-		}
-		entry.Attributes = entryAttrs
 	}
 
 	return status, entry, userGroups, nil
