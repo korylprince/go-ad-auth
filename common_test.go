@@ -39,6 +39,10 @@ func init() {
 		testConfig.BindSecurity = SecurityNone
 	case "TLS":
 		testConfig.BindSecurity = SecurityTLS
+	case "INSECURETLS":
+		testConfig.BindSecurity = SecurityInsecureTLS
+	case "INSECURESTARTTLS":
+		testConfig.BindSecurity = SecurityInsecureStartTLS
 	default:
 		testConfig.BindSecurity = SecurityStartTLS
 	}

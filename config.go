@@ -15,6 +15,8 @@ const (
 	SecurityNone SecurityType = iota
 	SecurityTLS
 	SecurityStartTLS
+	SecurityInsecureTLS
+	SecurityInsecureStartTLS
 )
 
 //Config contains settings for connecting to an Active Directory server.

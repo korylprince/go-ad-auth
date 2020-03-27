@@ -14,6 +14,12 @@ func TestConfigConnect(t *testing.T) {
 	if _, err := (&Config{Server: "127.0.0.1", Port: 1, Security: SecurityStartTLS}).Connect(); err == nil {
 		t.Error("SecurityStartTLS: Expected connect error but got nil")
 	}
+	if _, err := (&Config{Server: "127.0.0.1", Port: 1, Security: SecurityInsecureTLS}).Connect(); err == nil {
+		t.Error("SecurityInsecureTLS: Expected connect error but got nil")
+	}
+	if _, err := (&Config{Server: "127.0.0.1", Port: 1, Security: SecurityInsecureStartTLS}).Connect(); err == nil {
+		t.Error("SecurityInsecureStartTLS: Expected connect error but got nil")
+	}
 
 	if _, err := (&Config{Server: "127.0.0.1", Port: 1, Security: SecurityType(100)}).Connect(); err == nil {
 		t.Error("Invalid Security: Expected configuration error but got nil")
@@ -27,12 +33,17 @@ func TestConfigConnect(t *testing.T) {
 	if _, err := (&Config{Server: testConfig.Server, Port: testConfig.Port, Security: SecurityNone}).Connect(); err != nil {
 		t.Error("SecurityNone: Expected connect error to be nil but got:", err)
 	}
-
 	if _, err := (&Config{Server: testConfig.Server, Port: testConfig.TLSPort, Security: SecurityTLS}).Connect(); err != nil {
 		t.Error("SecurityTLS: Expected connect error to be nil but got:", err)
 	}
 	if _, err := (&Config{Server: testConfig.Server, Port: testConfig.Port, Security: SecurityStartTLS}).Connect(); err != nil {
 		t.Error("SecurityStartTLS: Expected connect error to be nil but got:", err)
+	}
+	if _, err := (&Config{Server: testConfig.Server, Port: testConfig.TLSPort, Security: SecurityInsecureTLS}).Connect(); err != nil {
+		t.Error("SecurityInsecureTLS: Expected connect error to be nil but got:", err)
+	}
+	if _, err := (&Config{Server: testConfig.Server, Port: testConfig.Port, Security: SecurityInsecureStartTLS}).Connect(); err != nil {
+		t.Error("SecurityInsecureStartTLS: Expected connect error to be nil but got:", err)
 	}
 }
 

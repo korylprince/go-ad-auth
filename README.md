@@ -75,7 +75,7 @@ Most tests will be skipped unless you supply the following environment variables
 | ADTEST_PORT             | Port to use - defaults to 389 |
 | ADTEST_BIND_UPN         | userPrincipalName (user@domain.tld) of admin user |
 | ADTEST_BIND_PASS        | Password of admin user |
-| ADTEST_BIND_SECURITY    | `NONE` \|\| `TLS` \|\| `STARTTLS` - defaults to `STARTTLS` |
+| ADTEST_BIND_SECURITY    | `NONE` \|\| `TLS` \|\| `STARTTLS` \|\| `INSECURETLS` \|\| `INSECURESTARTTLS` - defaults to `STARTTLS` |
 | ADTEST_BASEDN           | LDAP Base DN - for testing the root DN is recommended, e.g. `DC=example,DC=com` |
 | ADTEST_PASSWORD_UPN     | userPrincipalName of a test user that will be used to test password changing functions |
 

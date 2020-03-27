@@ -39,6 +39,22 @@ func (c *Config) Connect() (*Conn, error) {
 			return nil, fmt.Errorf("Connection error: %v", err)
 		}
 		return &Conn{Conn: conn, Config: c}, nil
+	case SecurityInsecureTLS:
+		conn, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port), &tls.Config{ServerName: c.Server, InsecureSkipVerify: true})
+		if err != nil {
+			return nil, fmt.Errorf("Connection error: %v", err)
+		}
+		return &Conn{Conn: conn, Config: c}, nil
+	case SecurityInsecureStartTLS:
+		conn, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port))
+		if err != nil {
+			return nil, fmt.Errorf("Connection error: %v", err)
+		}
+		err = conn.StartTLS(&tls.Config{ServerName: c.Server, InsecureSkipVerify: true})
+		if err != nil {
+			return nil, fmt.Errorf("Connection error: %v", err)
+		}
+		return &Conn{Conn: conn, Config: c}, nil
 	default:
 		return nil, errors.New("Configuration error: invalid SecurityType")
 	}
