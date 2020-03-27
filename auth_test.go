@@ -80,7 +80,7 @@ func TestAuthenticateExtended(t *testing.T) {
 
 	config := &Config{Server: testConfig.Server, Port: testConfig.Port, Security: testConfig.BindSecurity, BaseDN: testConfig.BaseDN}
 
-	status, _, _, err := AuthenticateExtended(config, "go-ad-auth", "invalid password", nil, nil)
+	status, _, _, err := AuthenticateExtended(config, "go-ad-auth", "invalid password", []string{""}, nil)
 	if err != nil {
 		t.Fatal("Invalid credentials: Expected err to be nil but got:", err)
 	}
@@ -89,12 +89,12 @@ func TestAuthenticateExtended(t *testing.T) {
 	}
 
 	badConfig := &Config{Server: testConfig.Server, Port: testConfig.Port, Security: testConfig.BindSecurity, BaseDN: "Bad BaseDN"}
-	if _, _, _, err = AuthenticateExtended(badConfig, "go-ad-auth", "invalid password", nil, nil); !strings.Contains(err.Error(), "invalid BaseDN") {
+	if _, _, _, err = AuthenticateExtended(badConfig, "go-ad-auth", "invalid password", []string{""}, nil); !strings.Contains(err.Error(), "invalid BaseDN") {
 		t.Error("Invalid configuration: Expected invalid BaseDN error but got:", err)
 	}
 
 	badConfig = &Config{Server: "127.0.0.1", Port: 1, Security: testConfig.BindSecurity, BaseDN: testConfig.BaseDN}
-	if _, _, _, err = AuthenticateExtended(badConfig, "go-ad-auth", "invalid password", nil, nil); !strings.Contains(err.Error(), "Connection error") {
+	if _, _, _, err = AuthenticateExtended(badConfig, "go-ad-auth", "invalid password", []string{""}, nil); !strings.Contains(err.Error(), "Connection error") {
 		t.Error("Connect error: Expected connection error but got:", err)
 	}
 
@@ -103,7 +103,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		return
 	}
 
-	status, _, _, err = AuthenticateExtended(config, testConfig.BindUPN, testConfig.BindPass, nil, nil)
+	status, _, _, err = AuthenticateExtended(config, testConfig.BindUPN, testConfig.BindPass, []string{""}, nil)
 	if err != nil {
 		t.Fatal("Valid UPN: Expected err to be nil but got:", err)
 	}
@@ -119,7 +119,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		t.Fatalf("Expected BIND_UPN (%s) to be splittable", testConfig.BindUPN)
 	}
 
-	status, _, _, err = AuthenticateExtended(config, username, testConfig.BindPass, nil, nil)
+	status, _, _, err = AuthenticateExtended(config, username, testConfig.BindPass, []string{""}, nil)
 	if err != nil {
 		t.Fatal("Valid username: Expected err to be nil but got:", err)
 	}
@@ -149,7 +149,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		}
 	}
 
-	status, entry, userGroups, err := AuthenticateExtended(config, testConfig.BindUPN, testConfig.BindPass, nil, checkGroups)
+	status, entry, userGroups, err := AuthenticateExtended(config, testConfig.BindUPN, testConfig.BindPass, []string{""}, checkGroups)
 	if err != nil {
 		t.Fatal("memberOf attrs: Expected err to be nil but got:", err)
 	}

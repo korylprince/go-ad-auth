@@ -43,11 +43,11 @@ func TestConnSearch(t *testing.T) {
 		t.Fatal("Error binding to server: invalid credentials")
 	}
 
-	if _, err := conn.Search("invalid filter", nil, 100); !strings.Contains(err.Error(), "Filter Compile Error") {
+	if _, err := conn.Search("invalid filter", []string{""}, 100); !strings.Contains(err.Error(), "Filter Compile Error") {
 		t.Error("Invalid filter: Expected invalid filter search error but got:", err)
 	}
 
-	if _, err := conn.Search(fmt.Sprintf("(userPrincipalName=%s)", testConfig.BindUPN), nil, 0); err != nil {
+	if _, err := conn.Search(fmt.Sprintf("(userPrincipalName=%s)", testConfig.BindUPN), []string{""}, 0); err != nil {
 		t.Error("Valid search: Expected err to be nil but got:", err)
 	}
 }
@@ -84,19 +84,19 @@ func TestConnSearchOne(t *testing.T) {
 		t.Fatal("Error binding to server: invalid credentials")
 	}
 
-	if _, err = conn.SearchOne("invalid filter", nil); !strings.Contains(err.Error(), "Filter Compile Error") {
+	if _, err = conn.SearchOne("invalid filter", []string{""}); !strings.Contains(err.Error(), "Filter Compile Error") {
 		t.Error("SearchOne: invalid filter: Expected invalid filter search error but got:", err)
 	}
 
-	if _, err = conn.SearchOne("(objectClass=false)", nil); !strings.HasSuffix(err.Error(), "no entries returned") {
+	if _, err = conn.SearchOne("(objectClass=false)", []string{""}); !strings.HasSuffix(err.Error(), "no entries returned") {
 		t.Error("SearchOne: no entries: Expected no entries search error but got:", err)
 	}
 
-	if _, err = conn.SearchOne("(objectClass=person)", nil); !strings.HasSuffix(err.Error(), "more than one entries returned") {
+	if _, err = conn.SearchOne("(objectClass=person)", []string{""}); !strings.HasSuffix(err.Error(), "more than one entries returned") {
 		t.Error("SearchOne: multiple entries: Expected multiple entries search error but got:", err)
 	}
 
-	if _, err = conn.SearchOne(fmt.Sprintf("(userPrincipalName=%s)", testConfig.BindUPN), nil); err != nil {
+	if _, err = conn.SearchOne(fmt.Sprintf("(userPrincipalName=%s)", testConfig.BindUPN), []string{""}); err != nil {
 		t.Error("SearchOne: valid search: Expected err to be nil but got:", err)
 	}
 
@@ -108,11 +108,11 @@ func TestConnSearchOne(t *testing.T) {
 		t.Error("GetDN: multiple entries: Expected multiple entries search error but got:", err)
 	}
 
-	if _, err = conn.GetAttributes("objectClass", "false", []string{"cn"}); !strings.HasSuffix(err.Error(), "no entries returned") {
+	if _, err = conn.GetAttributes("objectClass", "false", []string{""}); !strings.HasSuffix(err.Error(), "no entries returned") {
 		t.Error("GetAttributes: no entries: Expected no entries search error but got:", err)
 	}
 
-	if _, err = conn.GetAttributes("objectClass", "person", []string{"cn"}); !strings.HasSuffix(err.Error(), "more than one entries returned") {
+	if _, err = conn.GetAttributes("objectClass", "person", []string{""}); !strings.HasSuffix(err.Error(), "more than one entries returned") {
 		t.Error("GetAttributes: multiple entries: Expected multiple entries search error but got:", err)
 	}
 

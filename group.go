@@ -22,14 +22,14 @@ func (c *Conn) GroupDN(group string) (string, error) {
 func (c *Conn) ObjectGroups(attr, value string, groups []string) ([]string, error) {
 	dn := value
 	if attr != "dn" {
-		entry, err := c.GetAttributes(attr, value, nil)
+		entry, err := c.GetAttributes(attr, value, []string{""})
 		if err != nil {
 			return nil, err
 		}
 		dn = entry.DN
 	}
 
-	objectGroups, err := c.Search(fmt.Sprintf("(member:%s:=%s)", LDAPMatchingRuleInChain, dn), nil, 1000)
+	objectGroups, err := c.Search(fmt.Sprintf("(member:%s:=%s)", LDAPMatchingRuleInChain, dn), []string{""}, 1000)
 	if err != nil {
 		return nil, err
 	}
