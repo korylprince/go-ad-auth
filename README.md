@@ -6,11 +6,11 @@
 
 # Installing
 
-Using Go Modules (v3): 
+Using Go Modules:
 
 `go get github.com/korylprince/go-ad-auth/v3`
 
-Using gopkg.in (v2):
+Using gopkg.in:
 
 `go get gopkg.in/korylprince/go-ad-auth.v3`
 
