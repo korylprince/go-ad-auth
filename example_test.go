@@ -34,7 +34,7 @@ func ExampleAuthenticateExtended() {
 	config := &auth.Config{
 		Server:   "ldap.example.com",
 		Port:     389,
-		BaseDN:   "OU=Users,DC=example,DC=com",
+		BaseDN:   "OU=Users,DC=example,DC=com", //make sure BaseDN includes any groups you'll be referencing
 		Security: auth.SecurityStartTLS,
 	}
 
