@@ -69,7 +69,7 @@ func ExampleUpdatePassword() {
 		Server:   "ldap.example.com",
 		Port:     389,
 		BaseDN:   "OU=Users,DC=example,DC=com",
-		Security: auth.SecurityStartTLS,
+		Security: auth.SecurityStartTLS, // Active Directory requires a secure connection to reset passwords
 	}
 
 	username := "user"
