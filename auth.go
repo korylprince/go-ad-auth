@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"fmt"
-
 	ldap "github.com/go-ldap/ldap/v3"
 )
 
@@ -57,7 +55,7 @@ func AuthenticateExtended(config *Config, username, password string, attrs, grou
 
 	if len(groups) > 0 {
 		//get all groups
-		foundGroups, err := conn.Search(fmt.Sprintf("(member:%s:=%s)", LDAPMatchingRuleInChain, entry.DN), []string{""}, 1000)
+		foundGroups, err := conn.getGroups(entry.DN)
 		if err != nil {
 			return false, nil, nil, err
 		}

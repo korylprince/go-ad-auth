@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -29,7 +28,7 @@ func (c *Conn) ObjectGroups(attr, value string, groups []string) ([]string, erro
 		dn = entry.DN
 	}
 
-	objectGroups, err := c.Search(fmt.Sprintf("(member:%s:=%s)", LDAPMatchingRuleInChain, dn), []string{""}, 1000)
+	objectGroups, err := c.getGroups(dn)
 	if err != nil {
 		return nil, err
 	}

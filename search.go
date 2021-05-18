@@ -76,3 +76,7 @@ func (c *Conn) GetDN(attr, value string) (string, error) {
 func (c *Conn) GetAttributes(attr, value string, attrs []string) (*ldap.Entry, error) {
 	return c.SearchOne(fmt.Sprintf("(%s=%s)", ldap.EscapeFilter(attr), ldap.EscapeFilter(value)), attrs)
 }
+
+func (c *Conn) getGroups(dn string) ([]*ldap.Entry, error) {
+	return c.Search(fmt.Sprintf("(member:%s:=%s)", LDAPMatchingRuleInChain, ldap.EscapeFilter(dn)), []string{""}, 1000)
+}
