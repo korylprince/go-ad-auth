@@ -24,7 +24,7 @@ func (c *Config) Connect() (*Conn, error) {
 		}
 		return &Conn{Conn: conn, Config: c}, nil
 	case SecurityTLS:
-		conn, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port), &tls.Config{ServerName: c.Server})
+		conn, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port), &tls.Config{ServerName: c.Server, RootCAs: c.RootCAs})
 		if err != nil {
 			return nil, fmt.Errorf("Connection error: %v", err)
 		}
@@ -34,7 +34,7 @@ func (c *Config) Connect() (*Conn, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Connection error: %v", err)
 		}
-		err = conn.StartTLS(&tls.Config{ServerName: c.Server})
+		err = conn.StartTLS(&tls.Config{ServerName: c.Server, RootCAs: c.RootCAs})
 		if err != nil {
 			return nil, fmt.Errorf("Connection error: %v", err)
 		}

@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"net/mail"
@@ -25,6 +26,7 @@ type Config struct {
 	Port     int
 	BaseDN   string
 	Security SecurityType
+	RootCAs  *x509.CertPool
 }
 
 //Domain returns the domain derived from BaseDN or an error if misconfigured.
