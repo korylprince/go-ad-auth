@@ -14,7 +14,7 @@ func (c *Conn) ModifyDNPassword(dn, newPasswd string) error {
 	utf16 := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
 	encoded, err := utf16.NewEncoder().String(fmt.Sprintf(`"%s"`, newPasswd))
 	if err != nil {
-		return fmt.Errorf("Password error: Unable to encode password: %v", err)
+		return fmt.Errorf("Password error: Unable to encode password: %w", err)
 	}
 
 	req := ldap.NewModifyRequest(dn, nil)
@@ -22,7 +22,7 @@ func (c *Conn) ModifyDNPassword(dn, newPasswd string) error {
 
 	err = c.Conn.Modify(req)
 	if err != nil {
-		return fmt.Errorf("Password error: Unable to modify password: %v", err)
+		return fmt.Errorf("Password error: Unable to modify password: %w", err)
 	}
 
 	return nil
@@ -34,12 +34,12 @@ func UpdatePassword(config *Config, username, oldPasswd, newPasswd string) error
 	utf16 := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
 	oldEncoded, err := utf16.NewEncoder().String(fmt.Sprintf(`"%s"`, oldPasswd))
 	if err != nil {
-		return fmt.Errorf("Password error: Unable to encode old password: %v", err)
+		return fmt.Errorf("Password error: Unable to encode old password: %w", err)
 	}
 
 	newEncoded, err := utf16.NewEncoder().String(fmt.Sprintf(`"%s"`, newPasswd))
 	if err != nil {
-		return fmt.Errorf("Password error: Unable to encode new password: %v", err)
+		return fmt.Errorf("Password error: Unable to encode new password: %w", err)
 	}
 
 	upn, err := config.UPN(username)
@@ -73,7 +73,7 @@ func UpdatePassword(config *Config, username, oldPasswd, newPasswd string) error
 
 	err = conn.Conn.Modify(req)
 	if err != nil {
-		return fmt.Errorf("Password error: Unable to modify password: %v", err)
+		return fmt.Errorf("Password error: Unable to modify password: %w", err)
 	}
 
 	return nil

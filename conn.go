@@ -20,39 +20,39 @@ func (c *Config) Connect() (*Conn, error) {
 	case SecurityNone:
 		conn, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port))
 		if err != nil {
-			return nil, fmt.Errorf("Connection error: %v", err)
+			return nil, fmt.Errorf("Connection error: %w", err)
 		}
 		return &Conn{Conn: conn, Config: c}, nil
 	case SecurityTLS:
 		conn, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port), &tls.Config{ServerName: c.Server, RootCAs: c.RootCAs})
 		if err != nil {
-			return nil, fmt.Errorf("Connection error: %v", err)
+			return nil, fmt.Errorf("Connection error: %w", err)
 		}
 		return &Conn{Conn: conn, Config: c}, nil
 	case SecurityStartTLS:
 		conn, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port))
 		if err != nil {
-			return nil, fmt.Errorf("Connection error: %v", err)
+			return nil, fmt.Errorf("Connection error: %w", err)
 		}
 		err = conn.StartTLS(&tls.Config{ServerName: c.Server, RootCAs: c.RootCAs})
 		if err != nil {
-			return nil, fmt.Errorf("Connection error: %v", err)
+			return nil, fmt.Errorf("Connection error: %w", err)
 		}
 		return &Conn{Conn: conn, Config: c}, nil
 	case SecurityInsecureTLS:
 		conn, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port), &tls.Config{ServerName: c.Server, InsecureSkipVerify: true})
 		if err != nil {
-			return nil, fmt.Errorf("Connection error: %v", err)
+			return nil, fmt.Errorf("Connection error: %w", err)
 		}
 		return &Conn{Conn: conn, Config: c}, nil
 	case SecurityInsecureStartTLS:
 		conn, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", c.Server, c.Port))
 		if err != nil {
-			return nil, fmt.Errorf("Connection error: %v", err)
+			return nil, fmt.Errorf("Connection error: %w", err)
 		}
 		err = conn.StartTLS(&tls.Config{ServerName: c.Server, InsecureSkipVerify: true})
 		if err != nil {
-			return nil, fmt.Errorf("Connection error: %v", err)
+			return nil, fmt.Errorf("Connection error: %w", err)
 		}
 		return &Conn{Conn: conn, Config: c}, nil
 	default:
@@ -74,7 +74,7 @@ func (c *Conn) Bind(upn, password string) (bool, error) {
 				return false, nil
 			}
 		}
-		return false, fmt.Errorf("Bind error (%s): %v", upn, err)
+		return false, fmt.Errorf("Bind error (%s): %w", upn, err)
 	}
 
 	return true, nil
