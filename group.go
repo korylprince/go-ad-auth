@@ -1,6 +1,10 @@
 package auth
 
 import (
+	"encoding/binary"
+	"errors"
+	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -45,4 +49,40 @@ func (c *Conn) ObjectGroups(attr, value string, groups []string) ([]string, erro
 	}
 
 	return matchedGroups, nil
+}
+
+//ObjectPrimaryGroup returns the DN of the primary group of the object with the given attribute value
+//or an error if one occurred. Not all LDAP objects have a primary group.
+func (c *Conn) ObjectPrimaryGroup(attr, value string) (string, error) {
+	entry, err := c.GetAttributes(attr, value, []string{"objectSid", "primaryGroupID"})
+	if err != nil {
+		return "", err
+	}
+
+	gidStr := entry.GetAttributeValue("primaryGroupID")
+	if gidStr == "" {
+		return "", errors.New("Search error: primaryGroupID not found")
+	}
+
+	gid, err := strconv.Atoi(entry.GetAttributeValue("primaryGroupID"))
+	if err != nil {
+		return "", fmt.Errorf(`Parse error: invalid primaryGroupID ("%s"): %w`, gidStr, err)
+	}
+
+	uSID := entry.GetRawAttributeValue("objectSid")
+	gSID := make([]byte, len(uSID))
+	copy(gSID, uSID)
+	binary.LittleEndian.PutUint32(gSID[len(gSID)-4:], uint32(gid))
+
+	encoded := ""
+	for _, b := range gSID {
+		encoded += fmt.Sprintf(`\%02x`, b)
+	}
+
+	entry, err = c.SearchOne(fmt.Sprintf("(objectSid=%s)", encoded), nil)
+	if err != nil {
+		return "", fmt.Errorf("Search error: primary group not found: %w", err)
+	}
+
+	return entry.DN, nil
 }
