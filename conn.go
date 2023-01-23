@@ -70,9 +70,7 @@ func (c *Conn) Bind(upn, password string) (bool, error) {
 	err := c.Conn.Bind(upn, password)
 	if err != nil {
 		if e, ok := err.(*ldap.Error); ok {
-			if e.ResultCode == ldap.LDAPResultInvalidCredentials {
-				return false, nil
-			}
+			return false, e
 		}
 		return false, fmt.Errorf("Bind error (%s): %w", upn, err)
 	}
